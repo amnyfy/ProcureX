@@ -1,16 +1,22 @@
 from fastapi import APIRouter, Depends, HTTPException
 from sqlalchemy.orm import Session
 
-from app.auth.dependencies import get_current_user
 from app.config.database import get_db
+from app.auth.dependencies import get_current_user
+
 from app.models.tender import Tender
 from app.models.company import Company
+
 from app.schemas.tender import TenderCreate, TenderResponse
+
 
 router = APIRouter()
 
 
-# Create Tender
+# ============================================================
+# CREATE TENDER
+# ============================================================
+
 @router.post("/", response_model=TenderResponse)
 def create_tender(
     tender: TenderCreate,
@@ -20,7 +26,7 @@ def create_tender(
 ):
     user_id = int(current_user["sub"])
 
-    # Make sure the company belongs to the logged-in user
+    # Check company belongs to logged-in user
     company = (
         db.query(Company)
         .filter(
@@ -45,6 +51,7 @@ def create_tender(
         location=tender.location,
         estimated_value=tender.estimated_value,
         deadline=tender.deadline,
+        status="open",
         company_id=company_id
     )
 
@@ -55,23 +62,70 @@ def create_tender(
     return new_tender
 
 
-# Get All Tenders
+# ============================================================
+# GET TENDERS
+# ============================================================
+
 @router.get("/", response_model=list[TenderResponse])
 def get_tenders(
+    category: str | None = None,
+    location: str | None = None,
+    status: str | None = None,
+    min_budget: float | None = None,
+    max_budget: float | None = None,
     db: Session = Depends(get_db),
     current_user=Depends(get_current_user)
 ):
     user_id = int(current_user["sub"])
 
-    return (
+    query = (
         db.query(Tender)
-        .join(Company)
-        .filter(Company.user_id == user_id)
-        .all()
+        .join(
+            Company,
+            Tender.company_id == Company.id
+        )
+        .filter(
+            Company.user_id == user_id
+        )
     )
 
+    # Category filter
+    if category:
+        query = query.filter(
+            Tender.category.ilike(f"%{category}%")
+        )
 
-# Get Tender by ID
+    # Location filter
+    if location:
+        query = query.filter(
+            Tender.location.ilike(f"%{location}%")
+        )
+
+    # Status filter
+    if status:
+        query = query.filter(
+            Tender.status == status
+        )
+
+    # Minimum budget
+    if min_budget is not None:
+        query = query.filter(
+            Tender.estimated_value >= min_budget
+        )
+
+    # Maximum budget
+    if max_budget is not None:
+        query = query.filter(
+            Tender.estimated_value <= max_budget
+        )
+
+    return query.all()
+
+
+# ============================================================
+# GET SINGLE TENDER
+# ============================================================
+
 @router.get("/{tender_id}", response_model=TenderResponse)
 def get_tender(
     tender_id: int,
@@ -82,7 +136,10 @@ def get_tender(
 
     tender = (
         db.query(Tender)
-        .join(Company)
+        .join(
+            Company,
+            Tender.company_id == Company.id
+        )
         .filter(
             Tender.id == tender_id,
             Company.user_id == user_id
@@ -99,7 +156,10 @@ def get_tender(
     return tender
 
 
-# Update Tender
+# ============================================================
+# UPDATE TENDER
+# ============================================================
+
 @router.put("/{tender_id}", response_model=TenderResponse)
 def update_tender(
     tender_id: int,
@@ -111,7 +171,10 @@ def update_tender(
 
     tender = (
         db.query(Tender)
-        .join(Company)
+        .join(
+            Company,
+            Tender.company_id == Company.id
+        )
         .filter(
             Tender.id == tender_id,
             Company.user_id == user_id
@@ -140,7 +203,10 @@ def update_tender(
     return tender
 
 
-# Delete Tender
+# ============================================================
+# DELETE TENDER
+# ============================================================
+
 @router.delete("/{tender_id}")
 def delete_tender(
     tender_id: int,
@@ -151,7 +217,10 @@ def delete_tender(
 
     tender = (
         db.query(Tender)
-        .join(Company)
+        .join(
+            Company,
+            Tender.company_id == Company.id
+        )
         .filter(
             Tender.id == tender_id,
             Company.user_id == user_id

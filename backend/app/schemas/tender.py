@@ -6,11 +6,11 @@ class TenderCreate(BaseModel):
     title: str
     reference_number: str
     organization: str
-    description: str | None = None
-    category: str | None = None
-    location: str | None = None
-    estimated_value: str | None = None
-    deadline: datetime | None = None
+    description: str
+    category: str
+    location: str
+    estimated_value: float
+    deadline: datetime
 
 
 class TenderResponse(BaseModel):
@@ -18,12 +18,11 @@ class TenderResponse(BaseModel):
     title: str
     reference_number: str
     organization: str
-    description: str | None
-    category: str | None
-    location: str | None
-    estimated_value: str | None
-    deadline: datetime | None
-    status: str
+    description: str
+    category: str
+    location: str
+    estimated_value: float
+    deadline: datetime
     company_id: int
 
     class Config:
