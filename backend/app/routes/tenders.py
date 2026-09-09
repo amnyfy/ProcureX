@@ -1,4 +1,5 @@
-from fastapi import APIRouter, Depends, HTTPException
+import uuid
+from fastapi import APIRouter, Depends, HTTPException, Query
 from sqlalchemy.orm import Session
 
 from app.config.database import get_db
@@ -20,17 +21,26 @@ router = APIRouter()
 @router.post("/", response_model=TenderResponse)
 def create_tender(
     tender: TenderCreate,
-    company_id: int,
+    company_id: int | None = Query(None),
     db: Session = Depends(get_db),
     current_user=Depends(get_current_user)
 ):
     user_id = int(current_user["sub"])
+    target_company_id = company_id or tender.company_id
 
-    # Check company belongs to logged-in user
+    if not target_company_id:
+        user_company = db.query(Company).filter(Company.user_id == user_id).first()
+        if not user_company:
+            raise HTTPException(
+                status_code=400,
+                detail="Please create a company first before adding a tender."
+            )
+        target_company_id = user_company.id
+
     company = (
         db.query(Company)
         .filter(
-            Company.id == company_id,
+            Company.id == target_company_id,
             Company.user_id == user_id
         )
         .first()
@@ -42,17 +52,21 @@ def create_tender(
             detail="Company not found"
         )
 
+    ref_num = tender.reference_number
+    if not ref_num:
+        ref_num = f"TND-{uuid.uuid4().hex[:8].upper()}"
+
     new_tender = Tender(
         title=tender.title,
-        reference_number=tender.reference_number,
+        reference_number=ref_num,
         organization=tender.organization,
         description=tender.description,
         category=tender.category,
         location=tender.location,
         estimated_value=tender.estimated_value,
         deadline=tender.deadline,
-        status="open",
-        company_id=company_id
+        status=tender.status or "open",
+        company_id=target_company_id
     )
 
     db.add(new_tender)

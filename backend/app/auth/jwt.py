@@ -1,9 +1,10 @@
+import os
 from datetime import datetime, timedelta, timezone
 from jose import jwt, JWTError
 from fastapi import HTTPException, status
 
-SECRET_KEY = "procurex-super-secret-key"
-ALGORITHM = "HS256"
+SECRET_KEY = os.getenv("SECRET_KEY", "procurex-super-secret-key")
+ALGORITHM = os.getenv("ALGORITHM", "HS256")
 ACCESS_TOKEN_EXPIRE_MINUTES = 60
 
 

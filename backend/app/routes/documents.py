@@ -77,3 +77,39 @@ def upload_document(
         "filepath": document.filepath,
         "tender_id": tender_id
     }
+
+
+@router.get("/tender/{tender_id}")
+def get_tender_documents(
+    tender_id: int,
+    db: Session = Depends(get_db),
+    current_user=Depends(get_current_user)
+):
+    user_id = int(current_user["sub"])
+
+    tender = (
+        db.query(Tender)
+        .join(Company, Tender.company_id == Company.id)
+        .filter(
+            Tender.id == tender_id,
+            Company.user_id == user_id
+        )
+        .first()
+    )
+
+    if not tender:
+        raise HTTPException(
+            status_code=404,
+            detail="Tender not found"
+        )
+
+    documents = db.query(Document).filter(Document.tender_id == tender_id).all()
+    return [
+        {
+            "id": doc.id,
+            "tender_id": doc.tender_id,
+            "filename": doc.filename,
+            "filepath": doc.filepath
+        }
+        for doc in documents
+    ]

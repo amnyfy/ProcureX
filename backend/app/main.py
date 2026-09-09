@@ -17,7 +17,10 @@ app = FastAPI(
 
 app.add_middleware(
     CORSMiddleware,
-    allow_origins=["*"],
+    allow_origins=[
+        "http://localhost:5173",
+        "http://127.0.0.1:5173",
+    ],
     allow_credentials=True,
     allow_methods=["*"],
     allow_headers=["*"],
@@ -82,8 +85,20 @@ app.include_router(
     tags=["AI Tender Analysis"]
 )
 
+from app.routes.government_tenders import router as government_tenders_router
+from app.services.government_tender_service import start_scheduler
+
+# Start background periodic tender sync scheduler (30-minute interval)
+start_scheduler()
+
 app.include_router(
     dashboard_router,
     prefix="/dashboard",
     tags=["Dashboard"]
+)
+
+app.include_router(
+    government_tenders_router,
+    prefix="/government-tenders",
+    tags=["Government Tenders"]
 )
