@@ -39,6 +39,13 @@ export default function TendersList() {
   // Tab State: "all" | "my" | "government"
   const [activeTab, setActiveTab] = useState(searchParams.get("tab") || "all");
 
+  useEffect(() => {
+    const tabParam = searchParams.get("tab");
+    if (tabParam) {
+      setActiveTab(tabParam);
+    }
+  }, [searchParams]);
+
   const [tenders, setTenders] = useState([]);
   const [govTenders, setGovTenders] = useState([]);
   const [loading, setLoading] = useState(true);
@@ -337,6 +344,9 @@ export default function TendersList() {
               <div className="flex h-3 w-3 items-center justify-center rounded-full bg-emerald-500 animate-pulse" />
               <div className="text-xs">
                 <span className="font-bold text-brand-950">Central Public Procurement Portal (CPPP) Feed</span>
+                <span className="ml-2 inline-flex items-center rounded bg-amber-100 px-1.5 py-0.5 text-[10px] font-semibold text-amber-900 border border-amber-300">
+                  Demo/Seed Dataset
+                </span>
                 <span className="ml-2 text-slate-500">
                   {syncStatus?.last_sync_time ? `Last synced: ${syncStatus.last_sync_time}` : "Status: Active"}
                 </span>

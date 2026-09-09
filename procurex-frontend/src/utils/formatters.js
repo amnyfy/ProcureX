@@ -1,15 +1,16 @@
-export function formatCurrency(value, currency = "USD") {
+export function formatCurrency(value, currency = "INR") {
   if (value === null || value === undefined || value === "") return "—";
   const num = Number(value);
   if (Number.isNaN(num)) return String(value);
   try {
-    return new Intl.NumberFormat("en-US", {
+    const locale = currency === "INR" ? "en-IN" : "en-US";
+    return new Intl.NumberFormat(locale, {
       style: "currency",
       currency,
       maximumFractionDigits: 0,
     }).format(num);
   } catch {
-    return `$${num.toLocaleString()}`;
+    return `₹${num.toLocaleString("en-IN")}`;
   }
 }
 

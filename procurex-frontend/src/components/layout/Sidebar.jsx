@@ -6,6 +6,7 @@ import {
   UserRound,
   LogOut,
   Radar,
+  Landmark,
 } from "lucide-react";
 import { useAuth } from "../../context/useAuth";
 
@@ -13,6 +14,7 @@ const NAV_ITEMS = [
   { to: "/dashboard", label: "Dashboard", icon: LayoutDashboard },
   { to: "/companies", label: "Companies", icon: Building2 },
   { to: "/tenders", label: "Tenders", icon: FileText },
+  { to: "/tenders?tab=government", label: "Govt Tenders", icon: Landmark },
   { to: "/profile", label: "Profile", icon: UserRound },
 ];
 

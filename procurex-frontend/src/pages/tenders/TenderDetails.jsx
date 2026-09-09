@@ -29,6 +29,7 @@ import ErrorMessage from "../../components/common/ErrorMessage";
 import ConfirmDialog from "../../components/common/ConfirmDialog";
 import StatusBadge from "../../components/common/StatusBadge";
 import TenderFormModal from "./TenderFormModal";
+import TenderCopilot from "../../components/tenders/TenderCopilot";
 import { getTender, deleteTender } from "../../api/tenders";
 import { getCompany } from "../../api/companies";
 import { uploadDocument } from "../../api/documents";
@@ -427,6 +428,9 @@ export default function TenderDetails() {
               </div>
             )}
           </Card>
+
+          {/* AI Tender Copilot Section */}
+          <TenderCopilot tenderId={tenderId} tenderTitle={tender?.title} />
 
           {/* Bid Management Section */}
           <Card>

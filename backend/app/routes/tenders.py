@@ -1,6 +1,7 @@
 import uuid
 from fastapi import APIRouter, Depends, HTTPException, Query
 from sqlalchemy.orm import Session
+from sqlalchemy import or_
 
 from app.config.database import get_db
 from app.auth.dependencies import get_current_user
@@ -94,12 +95,15 @@ def get_tenders(
 
     query = (
         db.query(Tender)
-        .join(
+        .outerjoin(
             Company,
             Tender.company_id == Company.id
         )
         .filter(
-            Company.user_id == user_id
+            or_(
+                Company.user_id == user_id,
+                Tender.is_government_tender == True
+            )
         )
     )
 
@@ -150,13 +154,16 @@ def get_tender(
 
     tender = (
         db.query(Tender)
-        .join(
+        .outerjoin(
             Company,
             Tender.company_id == Company.id
         )
         .filter(
             Tender.id == tender_id,
-            Company.user_id == user_id
+            or_(
+                Company.user_id == user_id,
+                Tender.is_government_tender == True
+            )
         )
         .first()
     )
